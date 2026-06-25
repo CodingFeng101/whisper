@@ -154,6 +154,9 @@ class TestWhisper(WhisperTestBase):
     """
     @unittest.skipIf(ctypes is None, 'ctypes is not available')
     def test_fallocate_disabled_when_libc_missing(self):
+        """
+        Disable fallocate when libc cannot be found.
+        """
         try:
             with patch('ctypes.util.find_library', return_value=None):
                 reload(whisper)
@@ -170,6 +173,9 @@ class TestWhisper(WhisperTestBase):
 
     @unittest.skipIf(ctypes is None, 'ctypes is not available')
     def test_fallocate_disabled_when_libc_cannot_load(self):
+        """
+        Disable fallocate when libc cannot be loaded.
+        """
         try:
             with patch('ctypes.util.find_library', return_value='libc'):
                 with patch('ctypes.CDLL', side_effect=OSError):
