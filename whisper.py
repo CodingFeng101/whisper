@@ -66,6 +66,7 @@ fallocate = None
 
 
 def _setup_fallocate():
+    """Return a posix_fallocate wrapper when libc exposes one."""
     libc_name = ctypes.util.find_library('c')
     if libc_name is None:
         return None
@@ -79,7 +80,8 @@ def _setup_fallocate():
     c_off_t = ctypes.c_int
 
     if platform.uname()[0] == 'FreeBSD':
-        # offset type is 64-bit on FreeBSD 32-bit & 64-bit platforms to address files more than 2GB
+        # offset type is 64-bit on FreeBSD 32-bit & 64-bit platforms
+        # to address files more than 2GB.
         c_off_t = ctypes.c_int64
 
     try:
