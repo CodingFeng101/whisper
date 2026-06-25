@@ -10,6 +10,12 @@ import errno
 from datetime import datetime
 
 try:
+    import ctypes
+    import ctypes.util
+except ImportError:
+    ctypes = None
+
+try:
     from importlib import reload
 except ImportError:
     pass
@@ -146,6 +152,7 @@ class TestWhisper(WhisperTestBase):
     """
     Testing functions for whisper.
     """
+    @unittest.skipIf(ctypes is None, 'ctypes is not available')
     def test_fallocate_disabled_when_libc_missing(self):
         try:
             with patch('ctypes.util.find_library', return_value=None):
@@ -160,6 +167,17 @@ class TestWhisper(WhisperTestBase):
         else:
             self.assertFalse(whisper.CAN_FALLOCATE)
             self.assertIsNone(whisper.fallocate)
+
+    @unittest.skipIf(ctypes is None, 'ctypes is not available')
+    def test_fallocate_disabled_when_libc_cannot_load(self):
+        try:
+            with patch('ctypes.util.find_library', return_value='libc'):
+                with patch('ctypes.CDLL', side_effect=OSError):
+                    reload(whisper)
+                    self.assertFalse(whisper.CAN_FALLOCATE)
+                    self.assertIsNone(whisper.fallocate)
+        finally:
+            reload(whisper)
 
     def test_validate_archive_list(self):
         """
