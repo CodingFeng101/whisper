@@ -66,39 +66,39 @@ fallocate = None
 
 
 def _setup_fallocate():
-  libc_name = ctypes.util.find_library('c')
-  if libc_name is None:
-    return None
+    libc_name = ctypes.util.find_library('c')
+    if libc_name is None:
+        return None
 
-  try:
-    libc = ctypes.CDLL(libc_name)
-  except OSError:
-    return None
-
-  c_off64_t = ctypes.c_int64
-  c_off_t = ctypes.c_int
-
-  if platform.uname()[0] == 'FreeBSD':
-    # offset type is 64-bit on FreeBSD 32-bit & 64-bit platforms to address files more than 2GB
-    c_off_t = ctypes.c_int64
-
-  try:
-    _fallocate = libc.posix_fallocate64
-    _fallocate.restype = ctypes.c_int
-    _fallocate.argtypes = [ctypes.c_int, c_off64_t, c_off64_t]
-  except AttributeError:
     try:
-      _fallocate = libc.posix_fallocate
-      _fallocate.restype = ctypes.c_int
-      _fallocate.argtypes = [ctypes.c_int, c_off_t, c_off_t]
-    except AttributeError:
-      return None
+        libc = ctypes.CDLL(libc_name)
+    except OSError:
+        return None
 
-  def _py_fallocate(fd, offset, len_):
-    res = _fallocate(fd.fileno(), offset, len_)
-    if res != 0:
-      raise IOError(res, 'fallocate')
-  return _py_fallocate
+    c_off64_t = ctypes.c_int64
+    c_off_t = ctypes.c_int
+
+    if platform.uname()[0] == 'FreeBSD':
+        # offset type is 64-bit on FreeBSD 32-bit & 64-bit platforms to address files more than 2GB
+        c_off_t = ctypes.c_int64
+
+    try:
+        _fallocate = libc.posix_fallocate64
+        _fallocate.restype = ctypes.c_int
+        _fallocate.argtypes = [ctypes.c_int, c_off64_t, c_off64_t]
+    except AttributeError:
+        try:
+            _fallocate = libc.posix_fallocate
+            _fallocate.restype = ctypes.c_int
+            _fallocate.argtypes = [ctypes.c_int, c_off_t, c_off_t]
+        except AttributeError:
+            return None
+
+    def _py_fallocate(fd, offset, len_):
+        res = _fallocate(fd.fileno(), offset, len_)
+        if res != 0:
+            raise IOError(res, 'fallocate')
+    return _py_fallocate
 
 
 if CAN_FALLOCATE:
